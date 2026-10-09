@@ -98,7 +98,22 @@ if __name__ == "__main__":
         for i, a in enumerate(sys.argv):
             if a == "--port" and i + 1 < len(sys.argv):
                 port = int(sys.argv[i + 1])
+        # CORS so browser-based clients (e.g. a website chat preview) can
+        # call the public endpoint. The API is read-only and unauthenticated
+        # by design, so this exposes nothing new.
+        from starlette.middleware.cors import CORSMiddleware
+
+        app = mcp.http_app()
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["POST", "GET", "DELETE", "OPTIONS"],
+            allow_headers=["*"],
+            expose_headers=["mcp-session-id"],
+        )
+        import uvicorn
+
         # 0.0.0.0 so the host (Render/Fly/etc.) can route public traffic in.
-        mcp.run(transport="streamable-http", host="0.0.0.0", port=port)
+        uvicorn.run(app, host="0.0.0.0", port=port)
     else:
         mcp.run()
