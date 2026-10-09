@@ -11,6 +11,11 @@ from datetime import date, timedelta
 from hospitable_client import HospitableClient, parse_api_date
 from properties import PROPERTIES, UnknownPropertyError, resolve_property
 
+try:
+    from property_facts import FACTS
+except ImportError:  # facts not compiled yet; details fall back to basics
+    FACTS = {}
+
 
 # ----------------------------------------------------------------------
 # search_properties
@@ -223,6 +228,34 @@ def get_quote_logic(
 # Date query-param support on nuvistahaven.com property pages: UNVERIFIED
 # (2026-10-09). Until confirmed, return the plain property URL — never
 # fabricate query params the site may ignore.
+# ----------------------------------------------------------------------
+# get_property_details
+# ----------------------------------------------------------------------
+def get_property_details_logic(prop_ref: str) -> dict:
+    """Static facts about a property: bedrooms, sleeps, amenities, highlights.
+
+    Facts come from property_facts.py (compiled from nuvistahaven.com);
+    anything not stated on the site is null, never guessed.
+    """
+    prop = resolve_property(prop_ref)
+    facts = FACTS.get(prop["key"], {})
+
+    def _pick(field):
+        v = facts.get(field)
+        return v if v is not None else prop.get(field)
+
+    return {
+        "property": prop["name"],
+        "area": prop["area"],
+        "booking_url": prop["url"],
+        "bedrooms": _pick("bedrooms"),
+        "sleeps": _pick("sleeps"),
+        "bathrooms": facts.get("bathrooms"),
+        "amenities": facts.get("amenities", []),
+        "highlights": facts.get("highlights"),
+    }
+
+
 def get_booking_link_logic(
     prop_ref: str, check_in: str = "", check_out: str = ""
 ) -> dict:

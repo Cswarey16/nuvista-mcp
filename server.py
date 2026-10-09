@@ -83,6 +83,19 @@ def get_quote(property: str, check_in: str, check_out: str, guests: int = 2) -> 
 
 
 @mcp.tool()
+def get_property_details(property: str) -> dict:
+    """Facts about a property: bedrooms, sleeps, bathrooms, amenities, highlights.
+
+    Answers "does it have a hot tub?", "how many bedrooms?", etc.
+    Facts come from nuvistahaven.com; unknown values are null, never guessed.
+    """
+    try:
+        return logic.get_property_details_logic(property)
+    except UnknownPropertyError as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
 def get_booking_link(property: str, check_in: str = "", check_out: str = "") -> dict:
     """Direct booking URL on nuvistahaven.com for a property."""
     try:
