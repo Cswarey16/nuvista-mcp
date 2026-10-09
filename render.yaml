@@ -1,0 +1,12 @@
+# Render deployment (temporary hosting — free tier, no credit card).
+# Dashboard: render.com -> New + -> Web Service -> connect the nuvista-mcp repo.
+# Then set HOSPITABLE_API_TOKEN in the service's Environment tab (secret).
+services:
+  - type: web
+    name: nuvista-haven-mcp
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py --http
+    envVars:
+      - key: HOSPITABLE_API_TOKEN
+        sync: false
